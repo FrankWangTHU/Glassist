@@ -56,7 +56,7 @@ public struct Due: Codable, Sendable, Equatable {
     }
 }
 
-public struct TaskGroup: Identifiable, Sendable, Equatable {
+public struct TaskGroup: Codable, Identifiable, Sendable, Equatable {
     public let id: Int
     public let query: String
     public var tasks: [TodoTask]

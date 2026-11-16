@@ -1,59 +1,39 @@
-# Glassist architecture and implementation plan
+# Glassist 0.2: system widgets
 
-Research checked: 2026-11-16. User-selected layout: two independently draggable panels, positioned left/right by default. Repository: FrankWangTHU/Glassist. No repository collaborator changes or ChatGPT co-author attribution.
+The user's updated requirement is Notification Center integration, system small/medium/large sizes, and glass that matches neighboring Apple widgets. The independent NSPanel design from 0.1 is retired. There is no automatic desktop overlay or custom always-on-top window.
 
-## Decision
+## UI and lifecycle
 
-Use SwiftUI for content and settings, AppKit NSPanel for desktop placement, NSVisualEffectView with behind-window blending for frosted material, and Keychain for the local credential. macOS 13+; arm64 build. No Electron, server, subscription infrastructure or third-party widget host.
+A SwiftUI settings app embeds a WidgetKit extension. `AppIntentConfiguration` obtains saved-filter choices from a local catalog using `AppEntity`/`EntityQuery`. Each instance stores its own filter ID. The timeline provider re-reads the chosen filter's latest expression from Todoist, fetches every task page, and renders a snapshot.
 
-| Option | Benefit | Relevant limit | Decision |
-| --- | --- | --- | --- |
-| WidgetKit | System widget gallery, native configuration and AppIntent completion buttons | System-managed background/rendering and refresh budgets; not a continuously running custom window | Possible later companion extension |
-| Übersicht | Fast React/CSS iteration and desktop hosting | Additional host dependency; its documented click interaction requires a shortcut/accessibility access; actual desktop blur depends on host behavior | Useful for a disposable prototype, not chosen |
-| Native app | Two independent windows, scrolling, menus, direct task completion and real behind-window material | Need packaging/signing and target-Mac checks for Spaces/Stage Manager | Selected |
+The extension declares `.systemSmall`, `.systemMedium`, and `.systemLarge`. It uses `containerBackground(.fill.tertiary, for: .widget)` and semantic foreground styles. macOS renders/removes/tints the container as appropriate. There are no custom NSVisualEffectViews, backdrop tricks, arbitrary blur sliders or custom corner radii. Small widgets show up to 3 rows; medium 3; large 8, with remaining-count text on larger sizes. WidgetKit is a glanceable surface, not a freely scrolling app window.
 
-Do not equate SwiftUI with WidgetKit: this implementation is a native menu-bar app with desktop windows and will not appear in “Edit Widgets”. Material appearance is system-managed and affected by Reduce Transparency; the tint setting adjusts overlay density, not a private blur radius.
+Normal task titles deep-link to Todoist. Ordinary task completion uses an extension AppIntent and shared Keychain credentials. Recurring completion deliberately opens Todoist; no repeated advancement is possible from the widget itself. Completion claims are written before submitting, and ambiguous writes are never retried automatically. Reconnecting clears completion locks after the user checks results in Todoist.
 
-## Verified Todoist contract
+## Shared storage and privacy
 
-The current unified API base is `https://api.todoist.com/api/v1/`.
+Both targets must be signed by the same team with the same App Group and Keychain Sharing entitlement. Token storage uses `kSecUseDataProtectionKeychain`, a team-prefixed shared access group and device-only accessibility. No credential is passed through a URL or kept in the app-group JSON cache. No credentials are stored in CI.
 
-1. `POST /sync`, form body `sync_token=*`, `resource_types=["filters","user"]`: existing personal filters include ID, name and query. Maintain the returned sync token, merge updates and delete tombstones. Follow an initial full sync with an incremental sync because a full sync can be cached.
-2. `GET /tasks/filter?query=…&lang=…&limit=200`: query by saved expression, not saved filter ID. Follow `next_cursor` to exhaustion. Language and timezone come from the account context.
-3. The filter endpoint does not accept comma-separated multi-filter queries. Split top-level unescaped commas, preserve groups, query each separately and count unique IDs. Do not implement Todoist's full query language locally. Quotes and parentheses are preserved, and errors are visible rather than silently replacing the query.
-4. `POST /tasks/{id}/close`: normal tasks and their subtasks are completed; recurring tasks advance to the next occurrence. Submit once and refresh both panels. Do not automatically retry ambiguous writes.
-5. `todoist://task?id=…` opens the desktop task; fallback is the Todoist web task route.
+A private app-group JSON file contains filter metadata, task snapshots, account generation and completion claims. A process-shared file lock serializes changes. Disconnect removes the shared credential and resets the state. Connecting invalidates the old generation before replacing the credential. A response from an earlier account cannot repopulate the cache after a switch. Confirmed completion is removed even if an older network response arrives later.
 
-These contracts were checked against official documentation. Real-account verification still requires the user to connect locally; mock tests are not evidence of authenticated API success.
+Full filter sync is followed by an incremental sync. Task reads follow cursor pagination; grouped expressions are queried independently. Counts deduplicate IDs and use account timezone calendar dates. Deleted filters produce an explicit empty/error state, never silently select another filter. Offline results preserve their original timestamp. Completion buttons disable for very old cached data and locked tasks.
 
-## Data and state
+## Refresh constraints
 
-- Two panel settings records in UserDefaults; credentials in Keychain only.
-- URLSession ephemeral transport, redirects refused; no raw error bodies, tokens or task payload logging.
-- A shared actor client owns sync state; the main-actor store owns views and cancels superseded refreshes.
-- Query results are deduplicated per refresh when both panels choose the same query. Failure preserves the last complete result with its timestamp and a visible error. A newly selected filter never displays the previous filter's tasks.
-- Completing a task invalidates old reads. Only a confirmed completion removes it. Both panels refresh afterwards. Unknown outcomes lock that task's completion action until the user verifies it in Todoist.
-- HTTP 429 honors Retry-After. No offline write queue. No disk task cache in v0.1.
-- Overdue/today are disjoint calendar-day buckets in the account timezone. Floating and fixed-zone due dates are parsed separately. Counts apply to each selected filter, never to the whole account.
+The extension requests another timeline in 15 minutes; macOS decides the actual time. The host can request reloads after connection or manual refresh, but these requests do not bypass the system budget. The extension fetches directly, so it does not require the settings app to remain open. Refresh is not guaranteed during sleep or at minute-level intervals.
 
-## Delivery stages
+## Build and validation boundary
 
-1. Research and architecture decision — recorded before implementation.
-2. Native project, demo mode, two panels and editable settings.
-3. Keychain connection, saved filters, grouped/paginated reads, synchronization, task deep links and completion.
-4. Automated core tests and arm64 packaging; manual target-Mac checks and authenticated read/write checks.
+`swift test` exercises core logic. The Xcode scheme builds both the app and extension and embeds the extension under Contents/PlugIns. CI disables signing only for compilation and exports an explicitly UNSIGNED archive. Native gallery registration, signed shared-container access and a real account connection must be validated with a locally provisioned team. Compilation alone is not proof that the system can install or display the widget.
 
-## Acceptance checks
-
-Automated: escaped/grouped filters; account timezone dates; full then incremental filter sync; rename/deletion; multi-page reads and deduplication; repeated cursor failure; failed later page; unauthorized response; rate limits; close task request and null response.
-
-Manual, still required: first launch, Keychain save/read/delete, two different real filters, switching during a slow request, real ordinary and recurring completion, failure display, drag/lock/resize, relaunch position persistence, multiple displays, Spaces, Show Desktop, Stage Manager, full screen, sleep/wake, dark/light mode and Reduce Transparency. Real completion tests should use disposable tasks created by the user.
+Remaining manual acceptance: signed installation and gallery discovery, two independently configured instances, all 3 sizes, system clear/tinted/full-color appearances, task opening, real non-recurring completion using a disposable task, sleep/wake, disconnect across visible widgets, and keychain lock/unlock.
 
 ## Primary sources
 
-- [Todoist API v1](https://developer.todoist.com/api/v1/) — Sync resources, filters, tasks by filter, close task, dates, desktop URL schemes.
-- [Apple: Keeping a widget up to date](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date) — WidgetKit timeline budget; typical frequently viewed widget budget 40–70 reloads per day, not a minute timer.
-- [Apple: Adding interactivity to widgets](https://developer.apple.com/documentation/widgetkit/adding-interactivity-to-widgets-and-live-activities) — AppIntent-backed buttons and toggles; completion is possible.
-- [Apple: Displaying the right widget background](https://developer.apple.com/documentation/widgetkit/displaying-the-right-widget-background) — removable and system-rendered backgrounds.
-- [Apple: Behind-window blending](https://developer.apple.com/documentation/appkit/nsvisualeffectview/blendingmode-swift.enum/behindwindow) — blur of desktop/windows behind an app window.
-- [Übersicht project](https://github.com/felixhageloh/uebersicht) — React/CSS widgets and documented interaction requirements.
+- [Todoist API](https://developer.todoist.com/api/v1/)
+- [Configurable widgets](https://developer.apple.com/documentation/widgetkit/making-a-configurable-widget)
+- [System widget backgrounds](https://developer.apple.com/documentation/widgetkit/displaying-the-right-widget-background)
+- [Widget refresh scheduling](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date)
+- [Widget interactivity](https://developer.apple.com/documentation/widgetkit/adding-interactivity-to-widgets-and-live-activities)
+- [App groups](https://developer.apple.com/documentation/xcode/configuring-app-groups)
+- [Shared Keychain](https://developer.apple.com/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps)

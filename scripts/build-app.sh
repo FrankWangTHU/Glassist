@@ -1,13 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-ARCH="${GLASSIST_ARCH:-arm64}"
-swift build -c release --arch "$ARCH"
-BIN_DIR="$(swift build -c release --arch "$ARCH" --show-bin-path)"
-APP="dist/Glassist.app"
-mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
-cp "$BIN_DIR/Glassist" "$APP/Contents/MacOS/Glassist"
-cp scripts/Info.plist "$APP/Contents/Info.plist"
-codesign --force --deep --sign - "$APP"
-ditto -c -k --sequesterRsrc --keepParent "$APP" "dist/Glassist-$ARCH.zip"
-echo "Built $APP"
+# This build proves compilation, not signing/registration of the system widget.
+xcodebuild -project Glassist.xcodeproj -scheme Glassist -configuration Release \
+  -derivedDataPath .build/xcode CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO ARCHS=arm64 build
+mkdir -p dist
+# The unsigned archive is for developers to sign in Xcode, not a ready-to-install widget release.
+ditto -c -k --sequesterRsrc --keepParent .build/xcode/Build/Products/Release/Glassist.app dist/Glassist-WidgetKit-UNSIGNED.zip

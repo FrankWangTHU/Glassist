@@ -1,6 +1,8 @@
-name: Build and test macOS
+name: Build and test WidgetKit
 on:
   push:
+    paths-ignore:
+      - '**.md'
   pull_request:
   workflow_dispatch:
 permissions:
@@ -10,11 +12,11 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - name: Test API and date logic
+      - name: Test API, dates and widget storage
         run: swift test
-      - name: Build Apple Silicon app
+      - name: Build host and embedded WidgetKit extension
         run: bash scripts/build-app.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: Glassist-Apple-Silicon
-          path: dist/Glassist-arm64.zip
+          name: Glassist-WidgetKit-UNSIGNED
+          path: dist/Glassist-WidgetKit-UNSIGNED.zip
