@@ -6,7 +6,7 @@ This is a development project, not a notarized distribution. The unsigned CI pac
 
 - Apple Silicon Mac with macOS 14 or newer.
 - Full Xcode 15 or newer; Command Line Tools alone cannot configure signing and provisioning.
-- An Apple account in Xcode. Apple provides a free developer account for personal development. Availability of App Groups and Keychain Sharing depends on the chosen signing team/capabilities. Do not purchase membership solely on the assumption that every local widget requires it; verify the team's capability support in Xcode first.
+- An Apple account in Xcode. Apple's current macOS capabilities table explicitly lists App Groups and Keychain Sharing for the free Apple Developer account (an Apple Account holder who accepted the Developer Agreement). Start with the free Personal Team for this self-use build; paid membership is not a prerequisite established by this project. Local provisioning and installation still need verification.
 
 ## Configure on your own Mac
 
@@ -15,7 +15,7 @@ This is a development project, not a notarized distribution. The unsigned CI pac
 3. Open `Glassist.xcodeproj`. For **both** Glassist and GlassistWidgets, select the same team under Signing & Capabilities and enable Automatically manage signing.
 4. Register/select the same App Group for both targets. The default is `group.com.frankwang.Glassist`; if unavailable, choose a unique group and set the project build setting `GLASSIST_GROUP_ID` to it. Keep the two entitlements and Info.plist substitutions consistent.
 5. Confirm Keychain Sharing on both targets. The shared access group is `$(AppIdentifierPrefix)com.frankwang.Glassist.shared`; Xcode expands the prefix from your actual provisioning profile. Do not type a fake team ID or disable entitlement checks.
-6. Build and run the **Glassist** scheme on My Mac. Resolve any signing errors in Xcode before continuing. If your Personal Team cannot provision these capabilities, use a supported development team; paid program enrollment is a separate decision.
+6. Build and run the **Glassist** scheme on My Mac. Resolve any signing errors in Xcode before continuing. If Xcode reports a provisioning error, check the account agreement, selected team, unique identifiers and automatic-signing configuration. Diagnose the actual error before considering any paid membership.
 7. In Glassist, paste the Todoist token only into its local secure field and connect. This version requires a fresh connection to its shared Keychain group; it does not read another app's token or copy the old prototype's credentials automatically.
 8. Click the macOS menu bar date → Edit Widgets → search Glassist → select Small, Medium or Large. Add twice if desired. Right-click each widget → Edit Glassist → choose a filter independently.
 
