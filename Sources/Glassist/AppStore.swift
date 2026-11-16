@@ -54,6 +54,7 @@ struct PanelContent {
     private var generation = 0
     private var accountGeneration = 0
     private var timer: Timer?
+    private var demoContent: [PanelContent] = []
 
     init() {
         if let data = UserDefaults.standard.data(forKey: "preferences-v1"),
@@ -85,12 +86,13 @@ struct PanelContent {
                 TodoTask(id: "demo-4", content: "出门散步二十分钟", due: Due(date: today, isRecurring: true)),
                 TodoTask(id: "demo-5", content: "读完床头的书"),
                 TodoTask(id: "demo-6", content: "给植物浇水")])])]
+        demoContent = panels
     }
 
     func selection(_ index: Int) -> String { demo ? panels[index].filterID : preferences.panels[index].filterID }
     func select(_ id: String, panel index: Int) {
         if demo {
-            let source = panels.first { $0.filterID == id }
+            let source = demoContent.first { $0.filterID == id }
             panels[index] = source ?? PanelContent(filterID: id)
         } else { preferences.panels[index].filterID = id }
     }
@@ -202,6 +204,11 @@ struct PanelContent {
     private func removeTask(_ id: String) {
         for index in 0..<2 {
             for group in panels[index].groups.indices { panels[index].groups[group].tasks.removeAll { $0.id == id } }
+        }
+        if demo {
+            for index in demoContent.indices {
+                for group in demoContent[index].groups.indices { demoContent[index].groups[group].tasks.removeAll { $0.id == id } }
+            }
         }
     }
     func openTask(_ task: TodoTask) {

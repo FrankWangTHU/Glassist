@@ -56,6 +56,8 @@ struct PanelView: View {
                 Text(error).font(.system(size: 11)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true).padding(.vertical, 8)
             }
             if !store.uncertainCompletions.isEmpty {
+                Text("有任务的完成结果尚未确认，请先在 Todoist 中核对。")
+                    .font(.system(size: 11)).foregroundStyle(.orange)
                 Button("已在 Todoist 核对，解除完成锁定") { store.acknowledgeUncertain() }
                     .font(.system(size: 11)).padding(.vertical, 4)
             }
