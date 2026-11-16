@@ -33,5 +33,3 @@ For a signed local installation, set your team in the ignored `Configuration/Loc
 | `Glassist.xcodeproj` | Shared scheme with embedded extension |
 | `Tests/GlassistCoreTests` | API, dates, account isolation, cache and concurrency |
 | `docs/ARCHITECTURE.md` | Design decisions and runtime limits |
-
-No ChatGPT collaborator or co-author is added. The original screenshots and private task contents are not included.
