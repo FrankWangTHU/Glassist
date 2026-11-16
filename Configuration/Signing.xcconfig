@@ -1,0 +1,7 @@
+// macOS supports app groups scoped to the signing team without registering a group.* ID.
+// Keep credentials separate: the Keychain access group still uses AppIdentifierPrefix.
+GLASSIST_GROUP_ID = $(DEVELOPMENT_TEAM).com.frankwang.Glassist
+CODE_SIGN_IDENTITY = Apple Development
+
+// Machine-specific team selection is never committed.
+#include? "LocalSigning.xcconfig"

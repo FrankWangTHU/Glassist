@@ -12,14 +12,20 @@ This is a development project, not a notarized distribution. The unsigned CI pac
 
 1. Install Xcode from Apple's Mac App Store. Open it and complete its first-run setup yourself.
 2. Xcode → Settings → Accounts → sign in to your Apple account locally. Do not send passwords, verification codes or certificates in chat.
-3. Open `Glassist.xcodeproj`. For **both** Glassist and GlassistWidgets, select the same team under Signing & Capabilities and enable Automatically manage signing.
-4. Register/select the same App Group for both targets. The default is `group.com.frankwang.Glassist`; if unavailable, choose a unique group and set the project build setting `GLASSIST_GROUP_ID` to it. Keep the two entitlements and Info.plist substitutions consistent.
+3. Copy `Configuration/LocalSigning.xcconfig.example` to `Configuration/LocalSigning.xcconfig` and enter the Team ID shown in Xcode. This ignored local file sets the same team for **both** Glassist and GlassistWidgets. Open `Glassist.xcodeproj`; automatic signing is already enabled. Alternatively, choose the same team on both targets in Signing & Capabilities.
+4. The shared App Group defaults to `$(DEVELOPMENT_TEAM).com.frankwang.Glassist`, using Apple's supported macOS team-prefixed naming convention. Both targets inherit it from `Configuration/Signing.xcconfig`. This matches the team's macOS provisioning wildcard without separately registering a `group.*` identifier. Keep the two entitlements and Info.plist substitutions consistent; changing the group creates a different data container.
 5. Confirm Keychain Sharing on both targets. The shared access group is `$(AppIdentifierPrefix)com.frankwang.Glassist.shared`; Xcode expands the prefix from your actual provisioning profile. Do not type a fake team ID or disable entitlement checks.
-6. Build and run the **Glassist** scheme on My Mac. Resolve any signing errors in Xcode before continuing. If Xcode reports a provisioning error, check the account agreement, selected team, unique identifiers and automatic-signing configuration. Diagnose the actual error before considering any paid membership.
+6. Run `bash scripts/install-local.sh` from the repository to build, verify the signature and install to `/Applications/Glassist.app`. It replaces only an existing Glassist app, preserves account data in its separate shared container, and closes/reopens the settings app. An optional absolute destination supports `~/Applications` after shell expansion; `--build-only` verifies a signed build without installing. You can also build and run the **Glassist** scheme on My Mac in Xcode. If macOS asks whether codesign may use the development certificate, authorize it in the system dialog. Do not send your Mac password in chat. Resolve signing errors before continuing.
 7. In Glassist, paste the Todoist token only into its local secure field and connect. This version requires a fresh connection to its shared Keychain group; it does not read another app's token or copy the old prototype's credentials automatically.
 8. Click the macOS menu bar date → Edit Widgets → search Glassist → select Small, Medium or Large. Add twice if desired. Right-click each widget → Edit Glassist → choose a filter independently.
 
 Glassist gets its glass/tint appearance from the system widget appearance. It cannot force a blur amount or override Reduce Transparency. Follow system settings to obtain the same look as neighboring Apple widgets.
+
+## Local validation and renewal
+
+On 2026-11-17, the Apple Silicon build was tested with Xcode 27.2: all 13 core tests passed, both targets were signed by a free Personal Team, signature validation passed, the app was installed, macOS registered its widget extension, and the app created its shared container successfully. The user also confirmed Todoist connection and supplied a screenshot of the native Notification Center widget displaying their filter tasks and overdue/today counts. Interactive completion and appearance variants remain to be tested.
+
+The development profiles generated in that verification expire after seven days. Treat this as a local development installation, not a permanent distribution. Run `bash scripts/install-local.sh` again with the Xcode account signed in to request current profiles, rebuild and reinstall before/when the installation expires. Check any renewal errors in Xcode; renewal is not scheduled automatically. Team selection remains local, and no signing credentials are committed.
 
 To remove a widget, use its system context menu. To close the settings window, use the red close button or “关闭设置”; Command-Q quits the settings app. The widget runs separately, under system scheduling.
 

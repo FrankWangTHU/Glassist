@@ -14,6 +14,8 @@ Normal task titles deep-link to Todoist. Ordinary task completion uses an extens
 
 Both targets must be signed by the same team with the same App Group and Keychain Sharing entitlement. Token storage uses `kSecUseDataProtectionKeychain`, a team-prefixed shared access group and device-only accessibility. No credential is passed through a URL or kept in the app-group JSON cache. No credentials are stored in CI.
 
+The macOS app group is `$(DEVELOPMENT_TEAM).com.frankwang.Glassist`; Keychain sharing independently uses `$(AppIdentifierPrefix)com.frankwang.Glassist.shared`. The two prefixes are resolved from actual signing settings/profiles. A git-ignored local xcconfig supplies the team to both targets. This avoids a mismatch where one macOS profile contains a registered `group.*` identifier while the extension only contains the team's wildcard.
+
 A private app-group JSON file contains filter metadata, task snapshots, account generation and completion claims. A process-shared file lock serializes changes. Disconnect removes the shared credential and resets the state. Connecting invalidates the old generation before replacing the credential. A response from an earlier account cannot repopulate the cache after a switch. Confirmed completion is removed even if an older network response arrives later.
 
 Full filter sync is followed by an incremental sync. Task reads follow cursor pagination; grouped expressions are queried independently. Counts deduplicate IDs and use account timezone calendar dates. Deleted filters produce an explicit empty/error state, never silently select another filter. Offline results preserve their original timestamp. Completion buttons disable for very old cached data and locked tasks.
@@ -26,7 +28,7 @@ The extension requests another timeline in 15 minutes; macOS decides the actual 
 
 `swift test` exercises core logic. The Xcode scheme builds both the app and extension and embeds the extension under Contents/PlugIns. CI disables signing only for compilation and exports an explicitly UNSIGNED archive. Native gallery registration, signed shared-container access and a real account connection must be validated with a locally provisioned team. Compilation alone is not proof that the system can install or display the widget.
 
-Remaining manual acceptance: signed installation and gallery discovery, two independently configured instances, all 3 sizes, system clear/tinted/full-color appearances, task opening, real non-recurring completion using a disposable task, sleep/wake, disconnect across visible widgets, and keychain lock/unlock.
+Local verification on 2026-11-17 passed all 13 tests, signed installation, macOS extension registration and shared-container creation on Apple Silicon with Xcode 27.2. The user confirmed Todoist connection and a populated Notification Center widget. Remaining manual acceptance: two independently configured instances, all 3 sizes, system clear/tinted/full-color appearances, task opening, real non-recurring completion using a disposable task, sleep/wake, disconnect across visible widgets, and keychain lock/unlock.
 
 ## Primary sources
 

@@ -16,10 +16,12 @@ for f in sorted((root/'Sources').rglob('*.swift')):
 configrefs=[]
 for name in ['App.entitlements','Widget.entitlements','App-Info.plist','Widget-Info.plist']:
     configrefs.append(add(name,'PBXFileReference',lastKnownFileType='text.plist.xml',path='Configuration/'+name,sourceTree='<group>'))
+signing=add('signing-config','PBXFileReference',lastKnownFileType='text.xcconfig',path='Configuration/Signing.xcconfig',sourceTree='<group>')
+configrefs.append(signing)
 products=add('products','PBXGroup',children=[product_host,product_widget],name='Products',sourceTree='<group>')
 main=add('main','PBXGroup',children=list(files.values())+configrefs+[products],sourceTree='<group>')
 base={'MACOSX_DEPLOYMENT_TARGET':'14.0','SDKROOT':'macosx','SWIFT_VERSION':'5.0','ARCHS':'arm64','CLANG_ENABLE_MODULES':'YES',
-      'GLASSIST_GROUP_ID':'group.com.frankwang.Glassist','CODE_SIGN_STYLE':'Automatic','ENABLE_HARDENED_RUNTIME':'YES',
+      'CODE_SIGN_STYLE':'Automatic','ENABLE_HARDENED_RUNTIME':'YES',
       'REGISTER_APP_GROUPS':'YES','CURRENT_PROJECT_VERSION':'2','MARKETING_VERSION':'0.2.0'}
 def configs(name, extra):
     refs=[]
@@ -28,7 +30,8 @@ def configs(name, extra):
         settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if mode=='Debug' else '-O',
                          'SWIFT_ACTIVE_COMPILATION_CONDITIONS':'DEBUG' if mode=='Debug' else '',
                          'DEBUG_INFORMATION_FORMAT':'dwarf' if mode=='Debug' else 'dwarf-with-dsym'})
-        refs.append(add(name+mode,'XCBuildConfiguration',buildSettings=settings,name=mode))
+        config={'baseConfigurationReference':signing} if name=='project' else {}
+        refs.append(add(name+mode,'XCBuildConfiguration',buildSettings=settings,name=mode,**config))
     return add(name+'configlist','XCConfigurationList',buildConfigurations=refs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
 for name, targetID, selected, product, bundle, info, entitlements, producttype in [
     ('host',host,['Glassist','GlassistCore'],product_host,'com.frankwang.Glassist','App-Info.plist','App.entitlements','com.apple.product-type.application'),

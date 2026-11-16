@@ -20,6 +20,8 @@ The repository contains an Xcode host app and embedded WidgetKit extension. CI b
 
 See [local signing and installation](docs/INSTALL.md) before trying to add Glassist to the system gallery. `swift test` runs the tests; `bash scripts/build-app.sh` builds the unsigned Xcode archive on a Mac with Xcode installed. Open **Glassist.xcodeproj**, not Package.swift, to run the full app plus extension.
 
+For a signed local installation, set your team in the ignored `Configuration/LocalSigning.xcconfig` (copy the example), then run `bash scripts/install-local.sh`. Both targets inherit the same settings. Local Apple Silicon verification passed 13 tests, code-signature validation, installation, extension registration and shared-container creation with a free Personal Team. Development profiles are time-limited; see the installation guide for rebuilding.
+
 ## Project
 
 | Path | Purpose |
