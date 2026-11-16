@@ -66,7 +66,7 @@ final class DesktopPanel: NSPanel {
             let top = panel.frame.maxY
             panel.setContentSize(NSSize(width: preference.width, height: preference.height))
             panel.setFrameOrigin(NSPoint(x: panel.frame.minX, y: top - panel.frame.height))
-            panel.level = store.preferences.floating ? .floating : NSWindow.Level(rawValue: CGWindowLevelForKey(.desktopIconWindow) + 1)
+            panel.level = store.preferences.floating ? .floating : NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.desktopIconWindow)) + 1)
             panel.isMovableByWindowBackground = !store.preferences.locked
             panel.appearance = store.preferences.appearance == "system" ? nil : NSAppearance(named: store.preferences.appearance == "dark" ? .darkAqua : .aqua)
         }
