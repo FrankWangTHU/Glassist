@@ -18,11 +18,17 @@ for name in ['App.entitlements','Widget.entitlements','App-Info.plist','Widget-I
     configrefs.append(add(name,'PBXFileReference',lastKnownFileType='text.plist.xml',path='Configuration/'+name,sourceTree='<group>'))
 signing=add('signing-config','PBXFileReference',lastKnownFileType='text.xcconfig',path='Configuration/Signing.xcconfig',sourceTree='<group>')
 configrefs.append(signing)
+localized=[]
+for language in ['en','zh-Hans']:
+    path=f'Sources/GlassistCore/Resources/{language}.lproj/Localizable.strings'
+    localized.append(add('strings-'+language,'PBXFileReference',lastKnownFileType='text.plist.strings',name=language,path=path,sourceTree='<group>'))
+strings=add('localized-strings','PBXVariantGroup',children=localized,name='Localizable.strings',sourceTree='<group>')
+configrefs.append(strings)
 products=add('products','PBXGroup',children=[product_host,product_widget],name='Products',sourceTree='<group>')
 main=add('main','PBXGroup',children=list(files.values())+configrefs+[products],sourceTree='<group>')
 base={'MACOSX_DEPLOYMENT_TARGET':'14.0','SDKROOT':'macosx','SWIFT_VERSION':'5.0','ARCHS':'arm64','CLANG_ENABLE_MODULES':'YES',
       'CODE_SIGN_STYLE':'Automatic','ENABLE_HARDENED_RUNTIME':'YES',
-      'REGISTER_APP_GROUPS':'YES','CURRENT_PROJECT_VERSION':'2','MARKETING_VERSION':'0.2.0'}
+      'REGISTER_APP_GROUPS':'YES','CURRENT_PROJECT_VERSION':'3','MARKETING_VERSION':'0.3.0'}
 def configs(name, extra):
     refs=[]
     for mode in ['Debug','Release']:
@@ -39,7 +45,9 @@ for name, targetID, selected, product, bundle, info, entitlements, producttype i
     builds=[add(name+path,'PBXBuildFile',fileRef=ref) for path,ref in files.items() if path.split('/')[1] in selected]
     sources=add(name+'sources','PBXSourcesBuildPhase',buildActionMask=2147483647,files=builds,runOnlyForDeploymentPostprocessing=0)
     frameworks=add(name+'frameworks','PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
-    phases=[sources,frameworks]; dependencies=[]
+    resourcefile=add(name+'localized-resource','PBXBuildFile',fileRef=strings)
+    resources=add(name+'resources','PBXResourcesBuildPhase',buildActionMask=2147483647,files=[resourcefile],runOnlyForDeploymentPostprocessing=0)
+    phases=[sources,frameworks,resources]; dependencies=[]
     if name=='host':
         embedfile=add('embedfile','PBXBuildFile',fileRef=product_widget,settings={'ATTRIBUTES':['CodeSignOnCopy','RemoveHeadersOnCopy']})
         phases.append(add('embed','PBXCopyFilesBuildPhase',buildActionMask=2147483647,dstPath='',dstSubfolderSpec=13,files=[embedfile],name='Embed App Extensions',runOnlyForDeploymentPostprocessing=0))

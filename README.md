@@ -1,35 +1,48 @@
 # Glassist
 
-Native macOS Todoist widgets for Notification Center and the desktop. 系统原生 Todoist 过滤器小组件。
+Your Todoist filters, at home on your Mac. 原生 Todoist 过滤器小组件。
 
-Version 0.2 replaces the independent desktop panels with a **WidgetKit extension**. Click the date at the top right of macOS to show it alongside Calendar and Weather. Add multiple instances in small, medium or large sizes, each with its own saved personal Todoist filter.
+Glassist lives alongside Calendar and Weather in Notification Center and on the desktop. Add small, medium or large widgets, each with its own saved Todoist filter.
 
-## What changed
+![Glassist 0.3 interface preview using fictional tasks](docs/preview.jpg)
 
-- No floating desktop windows are created. The host is a normal settings app with Close and Quit controls.
-- Native small/medium/large widget families; macOS owns placement, glass/translucency, rounding, tint and removal.
-- Right-click → Edit Glassist to select an existing filter for each instance.
-- System-scheduled background refresh; widgets can fetch data after the settings app quits. A 15-minute timeline request is a request, not a guaranteed interval.
-- Filter-scoped overdue/today counts, complete paginated reads, grouped query handling and offline timestamps.
-- Click a task to open Todoist. Ordinary tasks have AppIntent completion buttons. Recurring tasks open Todoist; direct recurring completion is deferred to avoid double advancement on repeated widget actions.
-- Token in a shared **data-protection Keychain** access group. Cached tasks/filters in the signed app group's private container; never in the repository.
+## A little less switching
 
-## Build / install status
+- **Open** — click the title or background to open the filter in Todoist; click a task to see its details.
+- **Capture** — the top-right **＋** opens Todoist for Mac’s Quick Add. Nothing is submitted automatically.
+- **Complete** — ordinary tasks have an optimistic checkmark, followed by a gentle list transition when the server confirms completion. Failed or uncertain results remain visible for checking in Todoist. Recurring tasks open in Todoist.
+- **Make it yours** — independent filter, custom title, Roomy/Compact density, Coral/Ocean/Sage/Graphite accents, date and count visibility, and a footer on large widgets.
+- **中文 / English** — choose a language in Glassist settings, or follow the system. Each widget can follow the app or override its language. Task and filter names remain as you wrote them.
+- **Native materials** — a frosted settings window and system-managed widget glass/tint. macOS owns widget shape, placement and clear appearance.
 
-The repository contains an Xcode host app and embedded WidgetKit extension. CI builds both without signing and runs API/storage tests. An unsigned CI artifact **is not a ready-to-install system widget**. No developer certificate, account password or private key belongs in this repository or in chat.
+Right-click a widget → **Edit Glassist** to customize it. The system configuration editor follows your Mac’s language; widget content follows your chosen language.
 
-See [local signing and installation](docs/INSTALL.md) before trying to add Glassist to the system gallery. `swift test` runs the tests; `bash scripts/build-app.sh` builds the unsigned Xcode archive on a Mac with Xcode installed. Open **Glassist.xcodeproj**, not Package.swift, to run the full app plus extension.
+## Install on your Mac
 
-For a signed local installation, set your team in the ignored `Configuration/LocalSigning.xcconfig` (copy the example), then run `bash scripts/install-local.sh`. Both targets inherit the same settings. Local Apple Silicon verification passed 13 tests, code-signature validation, installation, extension registration and shared-container creation with a free Personal Team. Development profiles are time-limited; see the installation guide for rebuilding.
+Requires Apple Silicon, macOS 14+ and full Xcode. Open **Glassist.xcodeproj** for the host app and embedded WidgetKit extension.
 
-## Project
+1. Sign in to your Apple account in Xcode.
+2. Copy `Configuration/LocalSigning.xcconfig.example` to `Configuration/LocalSigning.xcconfig` and enter your Team ID.
+3. Run `bash scripts/install-local.sh`. It builds, verifies and installs `/Applications/Glassist.app`.
+4. Connect Todoist in the app’s local secure field, then click the menu bar date → Edit Widgets → Glassist.
 
-| Path | Purpose |
+See [installation and signing](docs/INSTALL.md) for details, including renewal of time-limited Personal Team development profiles. The CI archive is unsigned and is not a ready-to-install release.
+
+## Develop
+
+- `swift test` — API, date, storage, routing, completion-feedback and localization tests.
+- `bash scripts/install-local.sh --build-only` — signed local build without replacing the installed app.
+- `bash scripts/build-app.sh` — unsigned CI build of the app and extension.
+- `bash scripts/render-previews.sh /tmp/Glassist-preview.png` — render the actual widget layout with fictional fixtures; append `--english` for the English version.
+
+Version 0.3 passes **24 tests** and a signed local build on Apple Silicon. The 0.2 installation’s account and filter selections are retained. See [architecture and verification](docs/ARCHITECTURE.md) for behavior and validation boundaries.
+
+| Location | Purpose |
 | --- | --- |
-| `Sources/Glassist` | Normal settings window and local account connection |
-| `Sources/GlassistWidgets` | Widget configuration, timeline, sizes and completion AppIntent |
-| `Sources/GlassistCore` | Todoist API, shared cache and credential access |
-| `Configuration` | Host/extension Info.plist and entitlements |
-| `Glassist.xcodeproj` | Shared scheme with embedded extension |
-| `Tests/GlassistCoreTests` | API, dates, account isolation, cache and concurrency |
-| `docs/ARCHITECTURE.md` | Design decisions and runtime limits |
+| `Sources/Glassist` | Native settings, language selection and Todoist URL forwarding |
+| `Sources/GlassistWidgets` | Configurable widgets, layout and completion interactions |
+| `Sources/GlassistCore` | Todoist API, shared cache, Keychain, routing and language resources |
+| `Configuration` | Shared signing, Info.plist and entitlements |
+| `Tests/GlassistCoreTests` | Data, interaction and localization regression tests |
+
+Task refresh is scheduled by macOS; the requested 15-minute interval is not a guarantee. Credentials stay in the shared Keychain, separate from the task cache.

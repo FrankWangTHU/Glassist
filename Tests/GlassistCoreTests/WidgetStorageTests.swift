@@ -52,4 +52,48 @@ final class WidgetStorageTests: XCTestCase {
         XCTAssertEqual(loaded.updated, original.updated)
         XCTAssertEqual(loaded.timezone, "Asia/Shanghai")
     }
+    func testCompletionRemovesTaskFromEveryFilterAndScopesFeedback() throws {
+        let generation = try storage.transaction { state in state.connected = true; return state.generation }
+        let first = sample(generation: generation)
+        var second = first; second.filter = SavedFilter(id: "second", name: "Other", query: "all")
+        try storage.save(first); try storage.save(second)
+        let now = Date()
+        try storage.confirmCompletion(id: "task1", generation: generation, now: now)
+        let result = try storage.read()
+        XCTAssertTrue(result.snapshots.values.allSatisfy { $0.tasks.isEmpty })
+        XCTAssertEqual(result.completionLocks["task1"], "done")
+        XCTAssertEqual(Set(result.feedback?.filterIDs ?? []), ["filter", "second"])
+        XCTAssertEqual(result.feedback?.isRecent(for: "filter", now: now.addingTimeInterval(2)), true)
+        XCTAssertEqual(result.feedback?.isRecent(for: "unrelated", now: now), false)
+        XCTAssertEqual(result.feedback?.isRecent(for: "filter", now: now.addingTimeInterval(7)), false)
+        try storage.save(first)
+        XCTAssertTrue(try storage.read().snapshots["filter"]!.tasks.isEmpty)
+    }
+    func testFailedCompletionKeepsTaskAndCannotOverwriteConfirmedSuccess() throws {
+        let generation = try storage.transaction { state in state.connected = true; return state.generation }
+        try storage.save(sample(generation: generation))
+        try storage.recordCompletionFailure(id: "task1", generation: generation, uncertain: true, message: "Check Todoist")
+        XCTAssertEqual(try storage.read().snapshots["filter"]?.tasks.count, 1)
+        XCTAssertEqual(try storage.read().completionLocks["task1"], "uncertain")
+        XCTAssertEqual(try storage.read().feedback?.succeeded, false)
+        try storage.confirmCompletion(id: "task1", generation: generation)
+        try storage.recordCompletionFailure(id: "task1", generation: generation, uncertain: true, message: "Duplicate")
+        XCTAssertEqual(try storage.read().feedback?.succeeded, true)
+    }
+    func testLateCompletionCannotChangeNewAccount() throws {
+        let old = try storage.transaction { state in state.connected = true; return state.generation }
+        try storage.save(sample(generation: old))
+        try storage.transaction { $0 = WidgetDatabase(); $0.connected = true }
+        XCTAssertThrowsError(try storage.confirmCompletion(id: "task1", generation: old))
+        XCTAssertThrowsError(try storage.recordCompletionFailure(id: "task1", generation: old, uncertain: true, message: "Old"))
+        XCTAssertNil(try storage.read().feedback)
+        XCTAssertTrue(try storage.read().completionLocks.isEmpty)
+    }
+    func testPreviousDatabaseDecodesWithoutFeedback() throws {
+        let data = try JSONEncoder().encode(WidgetDatabase())
+        var object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        object.removeValue(forKey: "feedback")
+        let previous = try JSONSerialization.data(withJSONObject: object)
+        XCTAssertNil(try JSONDecoder().decode(WidgetDatabase.self, from: previous).feedback)
+    }
 }

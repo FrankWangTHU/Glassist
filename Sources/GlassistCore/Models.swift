@@ -105,14 +105,14 @@ public enum TaskDates {
         return .later
     }
 
-    public static func label(_ due: Due?, now: Date = Date(), timeZone: TimeZone = .current) -> String {
-        guard let due, let date = parsed(due, timeZone: timeZone) else { return "无日期" }
+    public static func label(_ due: Due?, now: Date = Date(), timeZone: TimeZone = .current, language: AppLanguage = .chinese) -> String {
+        guard let due, let date = parsed(due, timeZone: timeZone) else { return language.text("无日期") }
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = language.locale
         formatter.timeZone = timeZone
         let today = bucket(due, now: now, timeZone: timeZone) == .today
-        formatter.dateFormat = today ? "HH:mm" : (due.date.contains("T") ? "M月d日 HH:mm" : "M月d日")
-        let label = today ? (due.date.contains("T") ? "今天 " + formatter.string(from: date) : "今天") : formatter.string(from: date)
+        formatter.dateFormat = today ? "HH:mm" : (due.date.contains("T") ? (language.isChinese ? "M月d日 HH:mm" : "MMM d HH:mm") : (language.isChinese ? "M月d日" : "MMM d"))
+        let label = today ? (due.date.contains("T") ? language.text("今天") + " " + formatter.string(from: date) : language.text("今天")) : formatter.string(from: date)
         return label + (due.isRecurring == true ? " ↻" : "")
     }
 

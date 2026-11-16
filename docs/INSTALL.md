@@ -23,7 +23,7 @@ Glassist gets its glass/tint appearance from the system widget appearance. It ca
 
 ## Local validation and renewal
 
-On 2026-11-17, the Apple Silicon build was tested with Xcode 27.2: all 13 core tests passed, both targets were signed by a free Personal Team, signature validation passed, the app was installed, macOS registered its widget extension, and the app created its shared container successfully. The user also confirmed Todoist connection and supplied a screenshot of the native Notification Center widget displaying their filter tasks and overdue/today counts. Interactive completion and appearance variants remain to be tested.
+On 2026-11-17, the Apple Silicon build was tested with Xcode 27.2: all 24 core tests passed, both targets were signed by a free Personal Team, signature validation passed, the app was installed, macOS registered its widget extension, and the app created its shared container successfully. The user also confirmed Todoist connection and supplied a screenshot of the native Notification Center widget displaying their filter tasks and overdue/today counts. Interactive completion and appearance variants remain to be tested.
 
 The development profiles generated in that verification expire after seven days. Treat this as a local development installation, not a permanent distribution. Run `bash scripts/install-local.sh` again with the Xcode account signed in to request current profiles, rebuild and reinstall before/when the installation expires. Check any renewal errors in Xcode; renewal is not scheduled automatically. Team selection remains local, and no signing credentials are committed.
 
@@ -40,3 +40,9 @@ Official references checked 2026-11-16:
 - [macOS capabilities](https://developer.apple.com/help/account/reference/supported-capabilities-macos)
 - [App group provisioning](https://developer.apple.com/documentation/xcode/configuring-app-groups)
 - [Keychain sharing](https://developer.apple.com/documentation/security/sharing-access-to-keychain-items-among-a-collection-of-apps)
+
+## Customize and switch languages
+
+Open Glassist settings and use **Language / 界面语言** to choose Simplified Chinese, English or the system language. The setting updates the app immediately and requests widget reloads. Right-click each widget → Edit Glassist for an independent filter, title, accent, density, date/count/footer settings and language override. The system editor itself follows the Mac’s language.
+
+Click the widget title or background to open its Todoist filter, a task title for task details, and the top-right plus for the Mac Quick Add window. Ordinary completion is a toggle: the checkmark is optimistic while the request runs, and removal occurs after confirmation. If a request’s result is uncertain, the task remains with a warning and opens Todoist for checking. Recurring tasks always open Todoist.

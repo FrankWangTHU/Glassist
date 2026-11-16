@@ -71,6 +71,16 @@ public struct WidgetSnapshot: Codable, Sendable {
     }
 }
 
+public struct CompletionFeedback: Codable, Sendable {
+    public var date: Date
+    public var filterIDs: [String]
+    public var succeeded: Bool
+    public var message: String
+    public func isRecent(for filterID: String, now: Date = Date()) -> Bool {
+        filterIDs.contains(filterID) && (0..<6).contains(now.timeIntervalSince(date))
+    }
+}
+
 public struct WidgetDatabase: Codable {
     public var generation = UUID()
     public var connected = false
@@ -80,6 +90,9 @@ public struct WidgetDatabase: Codable {
     public var snapshots: [String: WidgetSnapshot] = [:]
     public var completionLocks: [String: String] = [:]
     public var retryAfter: Date?
+    // Optional so existing installations decode without migration or reconnecting.
+    public var feedback: CompletionFeedback?
+    public var interfaceLanguage: String?
     public init() {}
 }
 
@@ -129,12 +142,38 @@ public struct WidgetStorage {
         try transaction { state in
             guard state.connected, state.generation == generation else { throw WidgetStorageError.changedAccount }
             guard state.completionLocks[id] == nil else { throw WidgetStorageError.completionLocked }
-            guard let task = state.snapshots.values.filter { Date().timeIntervalSince($0.updated) < 86400 }.flatMap(\.tasks).first(where: { $0.id == id }), task.due?.isRecurring != true else {
+            guard let task = state.snapshots.values.filter({ Date().timeIntervalSince($0.updated) < 86400 }).flatMap(\.tasks).first(where: { $0.id == id }), task.due?.isRecurring != true else {
                 throw WidgetStorageError.completionLocked
             }
             let token = try WidgetCredential.read()
             state.completionLocks[id] = "pending"
             return token
+        }
+    }
+
+    public func confirmCompletion(id: String, generation: UUID, now: Date = Date()) throws {
+        try transaction { state in
+            guard state.connected, state.generation == generation else { throw WidgetStorageError.changedAccount }
+            let filters = state.snapshots.filter { $0.value.tasks.contains { $0.id == id } }.map(\.key)
+            state.completionLocks[id] = "done"
+            state.feedback = CompletionFeedback(date: now, filterIDs: filters, succeeded: true, message: "又完成了一项")
+            for key in Array(state.snapshots.keys) {
+                guard var snapshot = state.snapshots[key] else { continue }
+                for i in snapshot.groups.indices { snapshot.groups[i].tasks.removeAll { $0.id == id } }
+                state.snapshots[key] = snapshot
+            }
+        }
+    }
+
+    public func recordCompletionFailure(id: String, generation: UUID, uncertain: Bool, message: String) throws {
+        try transaction { state in
+            guard state.connected, state.generation == generation else { throw WidgetStorageError.changedAccount }
+            // A repeated intent must not replace a confirmed result with an error.
+            guard state.completionLocks[id] != "done" else { return }
+            let filters = state.snapshots.filter { $0.value.tasks.contains { $0.id == id } }.map(\.key)
+            if uncertain { state.completionLocks[id] = "uncertain" }
+            state.feedback = CompletionFeedback(date: Date(), filterIDs: filters, succeeded: false, message: message)
+            for key in filters { state.snapshots[key]?.error = message }
         }
     }
 }
@@ -145,7 +184,10 @@ public enum WidgetService {
         let client = TodoistClient(token: token)
         let (filters, context) = try await client.savedFilters()
         // Invalidate the old account before replacing its credential. A Keychain or disk failure remains disconnected.
-        try storage.transaction { $0 = WidgetDatabase() }
+        try storage.transaction { state in
+            let language = state.interfaceLanguage
+            state = WidgetDatabase(); state.interfaceLanguage = language
+        }
         try storage.transaction { state in
             try WidgetCredential.save(token)
             state.connected = true
@@ -156,7 +198,8 @@ public enum WidgetService {
         let storage = try WidgetStorage()
         try storage.transaction { state in
             try WidgetCredential.delete()
-            state = WidgetDatabase()
+            let language = state.interfaceLanguage
+            state = WidgetDatabase(); state.interfaceLanguage = language
         }
     }
     public static func catalog() async throws -> [SavedFilter] {
@@ -211,23 +254,10 @@ public enum WidgetService {
         let token = try storage.reserveCompletion(id: id, generation: generation)
         do {
             try await TodoistClient(token: token).closeTask(id: id)
-            try storage.transaction { state in
-                guard state.generation == generation else { throw WidgetStorageError.changedAccount }
-                state.completionLocks[id] = "done"
-                for key in Array(state.snapshots.keys) {
-                    guard var snapshot = state.snapshots[key] else { continue }
-                    for i in snapshot.groups.indices { snapshot.groups[i].tasks.removeAll { $0.id == id } }
-                    state.snapshots[key] = snapshot
-                }
-            }
+            try storage.confirmCompletion(id: id, generation: generation)
         } catch {
-            try? storage.transaction { state in
-                guard state.generation == generation else { return }
-                state.completionLocks[id] = "uncertain"
-                for key in Array(state.snapshots.keys) {
-                    state.snapshots[key]?.error = "完成结果待核对，请在 Todoist 中查看。"
-                }
-            }
+            try? storage.recordCompletionFailure(id: id, generation: generation, uncertain: true,
+                                                 message: "完成结果待核对，请在 Todoist 中查看。")
             throw error
         }
     }

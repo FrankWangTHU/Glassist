@@ -11,10 +11,23 @@ import GlassistCore
     @Published var error: String?
     @Published var signingReady = false
     @Published var updated: Date?
-    init() { reloadLocal() }
+    @Published var language: AppLanguage = .chinese
+    init() { reloadLocal(); WidgetCenter.shared.reloadAllTimelines() }
     func reloadLocal() {
         signingReady = (try? WidgetStorage()) != nil
-        if let db = try? WidgetStorage().read() { filters = db.filters; connected = db.connected }
+        language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "interfaceLanguage") ?? "") ?? .chinese
+        if let db = try? WidgetStorage().read() {
+            filters = db.filters; connected = db.connected
+            language = db.interfaceLanguage.flatMap(AppLanguage.init(rawValue:)) ?? language
+        }
+    }
+    func setLanguage(_ value: AppLanguage) {
+        do {
+            try WidgetStorage().transaction { $0.interfaceLanguage = value.rawValue }
+            UserDefaults.standard.set(value.rawValue, forKey: "interfaceLanguage")
+            language = value; error = nil
+            WidgetCenter.shared.reloadAllTimelines()
+        } catch { self.error = WidgetService.message(error) }
     }
     func connect(_ token: String) async {
         guard !busy else { return }

@@ -41,6 +41,10 @@ trap restore_previous EXIT
 /usr/bin/codesign --verify --deep --strict "$stage/Glassist.app"
 if /usr/bin/pgrep -x Glassist >/dev/null; then
   /usr/bin/osascript -e 'tell application id "com.frankwang.Glassist" to quit'
+  for attempt in {1..20}; do
+    /usr/bin/pgrep -x Glassist >/dev/null || break
+    sleep 0.1
+  done
   if /usr/bin/pgrep -x Glassist >/dev/null; then
     echo 'Close Glassist, then run this installer again.' >&2; exit 1
   fi
