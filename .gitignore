@@ -1,0 +1,11 @@
+.DS_Store
+.build/
+.swiftpm/
+dist/
+.env
+.env.*
+*.xcuserstate
+xcuserdata/
+*.log
+*token*
+*secret*

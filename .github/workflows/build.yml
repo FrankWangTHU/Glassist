@@ -1,0 +1,20 @@
+name: Build and test macOS
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test API and date logic
+        run: swift test
+      - name: Build Apple Silicon app
+        run: bash scripts/build-app.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Glassist-Apple-Silicon
+          path: dist/Glassist-arm64.zip
