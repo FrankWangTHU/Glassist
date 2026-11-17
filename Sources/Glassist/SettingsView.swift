@@ -21,7 +21,8 @@ struct SettingsView: View {
                     Text(t("少一点切换，多一点专注")).font(.system(size: 12)).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Text("0.3").font(.system(size: 10, weight: .semibold, design: .monospaced))
+                Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.3")
+                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
                     .foregroundStyle(.secondary).padding(7).background(.thinMaterial, in: Capsule())
             }.padding(.horizontal, 26).padding(.top, 34).padding(.bottom, 22)
             ScrollView {

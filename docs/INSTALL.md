@@ -43,6 +43,8 @@ Official references checked 2026-11-16:
 
 ## Customize and switch languages
 
+The installer stops the host and its independently running widget extension when updating, then registers the installed copy and unregisters Xcode's duplicate build product. This prevents a stale extension process from referencing a replaced executable and leaving the gallery on placeholder previews. It preserves the shared account data and existing widget configurations. Keep older prototype apps closed; open the copy in Applications.
+
 Open Glassist settings and use **Language / 界面语言** to choose Simplified Chinese, English or the system language. The setting updates the app immediately and requests widget reloads. Right-click each widget → Edit Glassist for an independent filter, title, accent, density, date/count/footer settings and language override. The system editor itself follows the Mac’s language.
 
 Click the widget title or background to open its Todoist filter, a task title for task details, and the top-right plus for the Mac Quick Add window. Ordinary completion is a toggle: the checkmark is optimistic while the request runs, and removal occurs after confirmation. If a request’s result is uncertain, the task remains with a warning and opens Todoist for checking. Recurring tasks always open Todoist.

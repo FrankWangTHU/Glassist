@@ -49,7 +49,21 @@ if /usr/bin/pgrep -x Glassist >/dev/null; then
     echo 'Close Glassist, then run this installer again.' >&2; exit 1
   fi
 fi
+# WidgetKit keeps its extension process alive independently of the settings app.
+# Stop it before replacing its executable; otherwise its audit token can point to a deleted bundle.
+if /usr/bin/pgrep -x GlassistWidgets >/dev/null; then
+  /usr/bin/pkill -TERM -x GlassistWidgets || true
+fi
 if [[ -e "$destination" ]]; then mv "$destination" "$stage/Previous.app"; fi
 mv "$stage/Glassist.app" "$destination"
+# Xcode also registers its build product. Keep a single installed copy for gallery metadata and URL routing.
+lsregister='/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister'
+"$lsregister" -u "$app"
+"$lsregister" -f -R -trusted "$destination"
+/usr/bin/pluginkit -a "$destination/Contents/PlugIns/GlassistWidgets.appex"
+# A visible widget can relaunch the old extension during the short replacement window.
+if /usr/bin/pgrep -x GlassistWidgets >/dev/null; then
+  /usr/bin/pkill -TERM -x GlassistWidgets || true
+fi
 /usr/bin/open "$destination"
 echo "Installed: $destination"
