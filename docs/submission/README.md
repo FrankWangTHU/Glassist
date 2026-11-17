@@ -4,7 +4,9 @@
 
 The walkthrough contains installation/removal instruction cards, actual native widget and settings captures, language switching, Quick Add and completion of a newly created demo task. Setup is illustrated from an already connected account, not a new authentication transaction.
 
-Glassist 0.3.1 is currently a source-build developer preview. Users build with their own Xcode account. The recorded local build used temporary free Personal Team provisioning; there is no Developer ID-signed, notarized public installer. Eligibility of this distribution route for a Todoist listing has not been confirmed. No certification is claimed.
+The walkthrough was recorded with Glassist 0.3.1. Version 0.3.2 adds [security hardening](../SECURITY-REVIEW.md) without changing the demonstrated workflow. Users build with their own Xcode account. The recorded local build used temporary free Personal Team provisioning; there is no Developer ID-signed, notarized public installer.
+
+An application was submitted through Todoist's official integration form on November 17, 2026, and its thank-you page confirmed receipt. The application discloses the source-build installation route and temporary development signing. Review is pending; eligibility of this distribution route and certification have not been confirmed.
 
 - [Installation and local signing](../INSTALL.md)
 - [Privacy policy](../PRIVACY.md)
