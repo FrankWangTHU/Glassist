@@ -29,13 +29,14 @@ public struct SavedFilter: Codable, Identifiable, Sendable, Equatable {
 public struct TodoTask: Codable, Identifiable, Sendable, Equatable {
     public let id: String
     public var content: String
-    public var description: String?
     public var priority: Int?
     public var due: Due?
     public var checked: Bool?
     public var isDeleted: Bool?
     enum CodingKeys: String, CodingKey {
-        case id, content, description, priority, due, checked
+        // Ignore descriptions and other fields that widgets do not display.
+        // Decoding and rewriting a legacy cache also removes these fields.
+        case id, content, priority, due, checked
         case isDeleted = "is_deleted"
     }
     public init(id: String, content: String, due: Due? = nil, priority: Int = 1) {

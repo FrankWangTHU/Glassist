@@ -28,7 +28,7 @@ products=add('products','PBXGroup',children=[product_host,product_widget],name='
 main=add('main','PBXGroup',children=list(files.values())+configrefs+[products],sourceTree='<group>')
 base={'MACOSX_DEPLOYMENT_TARGET':'14.0','SDKROOT':'macosx','SWIFT_VERSION':'5.0','ARCHS':'arm64','CLANG_ENABLE_MODULES':'YES',
       'CODE_SIGN_STYLE':'Automatic','ENABLE_HARDENED_RUNTIME':'YES',
-      'REGISTER_APP_GROUPS':'YES','CURRENT_PROJECT_VERSION':'4','MARKETING_VERSION':'0.3.1'}
+      'REGISTER_APP_GROUPS':'YES','CURRENT_PROJECT_VERSION':'5','MARKETING_VERSION':'0.3.2'}
 def configs(name, extra):
     refs=[]
     for mode in ['Debug','Release']:

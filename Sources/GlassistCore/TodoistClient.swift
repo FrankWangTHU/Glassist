@@ -99,7 +99,9 @@ public actor TodoistClient {
             formatter.locale = Locale(identifier: "en_US_POSIX")
             formatter.timeZone = TimeZone(secondsFromGMT: 0)
             formatter.dateFormat = "EEE, dd MMM yyyy HH:mm:ss z"
-            let delay = max(1, Double(header) ?? formatter.date(from: header)?.timeIntervalSinceNow ?? 60)
+            let parsed = Double(header) ?? formatter.date(from: header)?.timeIntervalSinceNow ?? 60
+            // Invalid or overflowing server values must not reach Date or Int conversion.
+            let delay = parsed.isFinite && parsed < Double(Int.max / 2) ? max(1, parsed) : 60
             blockedUntil = Date().addingTimeInterval(delay)
             throw APIError.rateLimited(delay)
         default: throw APIError.http(response.statusCode)

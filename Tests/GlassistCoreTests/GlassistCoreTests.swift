@@ -88,6 +88,33 @@ final class GlassistCoreTests: XCTestCase {
         XCTAssertEqual(requests[0].url!.path, "/api/v1/tasks/abc123/close")
     }
 
+    func testMalformedRetryHeadersCannotCrashErrorDisplay() async throws {
+        for header in ["NaN", "Infinity", "1e100", "invalid", "-10"] {
+            let transport = StubTransport([.init(status: 429, body: "{}", headers: ["Retry-After": header])])
+            let client = TodoistClient(token: "test-only", transport: transport)
+            do { try await client.closeTask(id: "abc123"); XCTFail("Expected rate limit") }
+            catch APIError.rateLimited(let delay) {
+                XCTAssertTrue(delay.isFinite)
+                XCTAssertGreaterThanOrEqual(delay, 1)
+                XCTAssertLessThanOrEqual(delay, 60)
+                XCTAssertFalse(APIError.rateLimited(delay).localizedDescription.isEmpty)
+            }
+            let requests = await transport.requests
+            XCTAssertEqual(requests.count, 1)
+        }
+    }
+
+    func testCompletionRejectsPathInjectionBeforeNetworkRequest() async throws {
+        let transport = StubTransport([])
+        let client = TodoistClient(token: "test-only", transport: transport)
+        for id in ["", "../projects", "a/close", "%2F", "a?token=x", "a#fragment"] {
+            do { try await client.closeTask(id: id); XCTFail("Expected invalid task ID") }
+            catch APIError.invalidResponse {}
+        }
+        let requests = await transport.requests
+        XCTAssertTrue(requests.isEmpty)
+    }
+
     func testUnauthorizedIsExplicit() async throws {
         let client = TodoistClient(token: "test-only", transport: StubTransport([.init(status: 401, body: "{}")]))
         do { _ = try await client.savedFilters(); XCTFail("Expected auth failure") }

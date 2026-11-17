@@ -35,7 +35,7 @@ See [installation and signing](docs/INSTALL.md) for details, including renewal o
 - `bash scripts/build-app.sh` — unsigned CI build of the app and extension.
 - `bash scripts/render-previews.sh /tmp/Glassist-preview.png` — render the actual widget layout with fictional fixtures; append `--english` for the English version.
 
-Version 0.3 passes **24 tests** and a signed local build on Apple Silicon. The 0.2 installation’s account and filter selections are retained. See [architecture and verification](docs/ARCHITECTURE.md) for behavior and validation boundaries.
+Version 0.3.2 passes **27 core tests**, **8 renewal-helper tests** and a signed local build on Apple Silicon. Existing account and filter selections are retained. See the [security review](docs/SECURITY-REVIEW.md) and [architecture and verification](docs/ARCHITECTURE.md) for behavior and validation boundaries.
 
 | Location | Purpose |
 | --- | --- |

@@ -1,6 +1,6 @@
 # Glassist privacy policy
 
-Effective November 17, 2026. Applies to Glassist 0.3.1.
+Effective November 17, 2026. Applies to Glassist 0.3.2.
 
 Glassist is an independent macOS application that displays your saved Todoist filters in native widgets. It connects directly to Todoist. The project does not operate a server that receives your account credentials or tasks.
 
@@ -8,8 +8,10 @@ Glassist is an independent macOS application that displays your saved Todoist fi
 
 - Your Todoist API token authenticates requests to Todoist. You enter it in the app's local secure field. It is stored in the macOS data-protection Keychain, shared only with the signed Glassist app and widget extension through their configured access group. The stored item is marked for this device only.
 - Saved filter names, IDs, queries and ordering are retrieved to populate the filter selector.
-- Matching tasks can include IDs, titles, descriptions, priority, due dates, recurrence information and completion state. The app caches these fields locally for widget display and synchronization.
+- Matching tasks can include IDs, titles, priority, due dates, recurrence information and completion state. The app caches these fields locally for widget display and synchronization.
 - Todoist language and time-zone settings support filter interpretation and date display. Glassist also stores interface preferences, sync times, retry state and completion feedback locally.
+
+Version 0.3.2 ignores task descriptions and other unused task fields. Reading and rewriting a pre-0.3.2 cache removes previously stored descriptions from the active cache; backups are outside this cleanup.
 
 The task cache is a JSON file in the app's shared macOS container, protected by local file permissions. It is separate from the Keychain credential and is not encrypted by Glassist itself. macOS also manages widget configurations and rendered widget content.
 

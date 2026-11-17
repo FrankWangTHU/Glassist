@@ -96,4 +96,21 @@ final class WidgetStorageTests: XCTestCase {
         let previous = try JSONSerialization.data(withJSONObject: object)
         XCTAssertNil(try JSONDecoder().decode(WidgetDatabase.self, from: previous).feedback)
     }
+
+    func testReadingLegacyCacheDropsUnusedPrivateTaskDescription() throws {
+        let generation = try storage.transaction { state in state.connected = true; return state.generation }
+        try storage.save(sample(generation: generation))
+        let file = directory.appendingPathComponent("state.json")
+        let previous = String(decoding: try Data(contentsOf: file), as: UTF8.self)
+            .replacingOccurrences(of: "\"content\":\"Example\"", with: "\"description\":\"private-note-fixture\",\"content\":\"Example\"")
+        XCTAssertTrue(previous.contains("private-note-fixture"))
+        try Data(previous.utf8).write(to: file)
+        let loaded = try storage.read()
+        XCTAssertEqual(loaded.snapshots["filter"]?.tasks.first?.content, "Example")
+        let rewritten = String(decoding: try Data(contentsOf: file), as: UTF8.self)
+        XCTAssertFalse(rewritten.contains("private-note-fixture"))
+        XCTAssertFalse(rewritten.contains("\"description\""))
+        let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+        XCTAssertEqual(attributes[.posixPermissions] as? Int, 0o600)
+    }
 }
