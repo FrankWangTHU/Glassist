@@ -10,3 +10,5 @@ xcuserdata/
 *token*
 *secret*
 Configuration/LocalSigning.xcconfig
+__pycache__/
+*.pyc

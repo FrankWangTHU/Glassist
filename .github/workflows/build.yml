@@ -12,6 +12,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
+      - name: Test local signing renewal safeguards
+        run: python3 -m unittest discover -s scripts/tests -v
       - name: Test API, dates and widget storage
         run: swift test
       - name: Build host and embedded WidgetKit extension

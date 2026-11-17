@@ -46,3 +46,5 @@ Version 0.3 passes **24 tests** and a signed local build on Apple Silicon. The 0
 | `Tests/GlassistCoreTests` | Data, interaction and localization regression tests |
 
 Task refresh is scheduled by macOS; the requested 15-minute interval is not a guarantee. Credentials stay in the shared Keychain, separate from the task cache.
+
+Read the [privacy policy](docs/PRIVACY.md) and [distribution readiness notes](docs/DISTRIBUTION.md). Glassist is not created by, affiliated with, or supported by Todoist.
