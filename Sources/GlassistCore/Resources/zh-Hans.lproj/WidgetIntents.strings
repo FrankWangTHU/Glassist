@@ -1,0 +1,24 @@
+// System-hosted widget configuration and App Intents.
+"Todoist filter" = "Todoist 过滤器";
+"Layout" = "布局";
+"Roomy" = "舒适";
+"Compact · more tasks" = "紧凑 · 更多任务";
+"Accent color" = "强调色";
+"Coral" = "珊瑚红";
+"Ocean" = "雾蓝";
+"Sage" = "鼠尾草绿";
+"Graphite" = "石墨";
+"Language" = "界面语言";
+"Follow app" = "跟随应用";
+"Simplified Chinese" = "简体中文";
+"English" = "English";
+"Choose a Todoist filter" = "选择 Todoist 过滤器";
+"Each widget shows one saved filter, independently." = "每个小组件独立显示一个已保存的过滤器。";
+"Filter" = "过滤器";
+"Show counts" = "显示统计";
+"Show dates" = "显示日期";
+"Show footer (large)" = "显示底栏（大尺寸）";
+"Custom title" = "自定义标题";
+"Complete Todoist task" = "完成 Todoist 任务";
+"Task" = "任务";
+"Account version" = "账号版本";

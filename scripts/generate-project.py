@@ -24,11 +24,17 @@ for language in ['en','zh-Hans']:
     localized.append(add('strings-'+language,'PBXFileReference',lastKnownFileType='text.plist.strings',name=language,path=path,sourceTree='<group>'))
 strings=add('localized-strings','PBXVariantGroup',children=localized,name='Localizable.strings',sourceTree='<group>')
 configrefs.append(strings)
+intentrefs=[]
+for language in ['en','zh-Hans']:
+    path=f'Sources/GlassistCore/Resources/{language}.lproj/WidgetIntents.strings'
+    intentrefs.append(add('intent-strings-'+language,'PBXFileReference',lastKnownFileType='text.plist.strings',name=language,path=path,sourceTree='<group>'))
+intentstrings=add('localized-intent-strings','PBXVariantGroup',children=intentrefs,name='WidgetIntents.strings',sourceTree='<group>')
+configrefs.append(intentstrings)
 products=add('products','PBXGroup',children=[product_host,product_widget],name='Products',sourceTree='<group>')
 main=add('main','PBXGroup',children=list(files.values())+configrefs+[products],sourceTree='<group>')
 base={'MACOSX_DEPLOYMENT_TARGET':'14.0','SDKROOT':'macosx','SWIFT_VERSION':'5.0','ARCHS':'arm64','CLANG_ENABLE_MODULES':'YES',
       'CODE_SIGN_STYLE':'Automatic','ENABLE_HARDENED_RUNTIME':'YES',
-      'REGISTER_APP_GROUPS':'YES','CURRENT_PROJECT_VERSION':'5','MARKETING_VERSION':'0.3.2'}
+      'REGISTER_APP_GROUPS':'YES','SWIFT_EMIT_LOC_STRINGS':'YES','CURRENT_PROJECT_VERSION':'6','MARKETING_VERSION':'0.3.2'}
 def configs(name, extra):
     refs=[]
     for mode in ['Debug','Release']:
@@ -46,7 +52,8 @@ for name, targetID, selected, product, bundle, info, entitlements, producttype i
     sources=add(name+'sources','PBXSourcesBuildPhase',buildActionMask=2147483647,files=builds,runOnlyForDeploymentPostprocessing=0)
     frameworks=add(name+'frameworks','PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
     resourcefile=add(name+'localized-resource','PBXBuildFile',fileRef=strings)
-    resources=add(name+'resources','PBXResourcesBuildPhase',buildActionMask=2147483647,files=[resourcefile],runOnlyForDeploymentPostprocessing=0)
+    intentresource=add(name+'localized-intent-resource','PBXBuildFile',fileRef=intentstrings)
+    resources=add(name+'resources','PBXResourcesBuildPhase',buildActionMask=2147483647,files=[resourcefile,intentresource],runOnlyForDeploymentPostprocessing=0)
     phases=[sources,frameworks,resources]; dependencies=[]
     if name=='host':
         embedfile=add('embedfile','PBXBuildFile',fileRef=product_widget,settings={'ATTRIBUTES':['CodeSignOnCopy','RemoveHeadersOnCopy']})
@@ -76,6 +83,7 @@ schemes=projectdir/'xcshareddata/xcschemes'; schemes.mkdir(parents=True,exist_ok
 (schemes/'Glassist.xcscheme').write_text(f'''<?xml version="1.0" encoding="UTF-8"?>
 <Scheme LastUpgradeVersion="1600" version="1.3"><BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES"><BuildActionEntries><BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{host}" BuildableName="Glassist.app" BlueprintName="Glassist" ReferencedContainer="container:Glassist.xcodeproj"/></BuildActionEntry></BuildActionEntries></BuildAction><TestAction buildConfiguration="Debug"/><LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugDocumentVersioning="YES" allowLocationSimulation="YES"><BuildableProductRunnable runnableDebuggingMode="0"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="{host}" BuildableName="Glassist.app" BlueprintName="Glassist" ReferencedContainer="container:Glassist.xcodeproj"/></BuildableProductRunnable></LaunchAction><ProfileAction buildConfiguration="Release"/><AnalyzeAction buildConfiguration="Debug"/><ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/></Scheme>''')
 common={'CFBundleExecutable':'$(EXECUTABLE_NAME)','CFBundleIdentifier':'$(PRODUCT_BUNDLE_IDENTIFIER)',
+        'CFBundleDevelopmentRegion':'en','CFBundleLocalizations':['en','zh-Hans'],
         'CFBundleName':'$(PRODUCT_NAME)','CFBundleShortVersionString':'$(MARKETING_VERSION)','CFBundleVersion':'$(CURRENT_PROJECT_VERSION)',
         'LSMinimumSystemVersion':'$(MACOSX_DEPLOYMENT_TARGET)','GlassistAppGroup':'$(GLASSIST_GROUP_ID)',
         'GlassistKeychainGroup':'$(AppIdentifierPrefix)com.frankwang.Glassist.shared'}

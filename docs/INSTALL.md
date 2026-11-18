@@ -19,6 +19,8 @@ This is a development project, not a notarized distribution. The unsigned CI pac
 7. In Glassist, paste the Todoist token only into its local secure field and connect. This version requires a fresh connection to its shared Keychain group; it does not read another app's token or copy the old prototype's credentials automatically.
 8. Click the macOS menu bar date → Edit Widgets → search Glassist → select Small, Medium or Large. Add twice if desired. Right-click each widget → Edit Glassist → choose a filter independently.
 
+For the manual Xcode/Finder installation route: select the **Glassist** scheme and **My Mac**, then choose **Product → Build**. After **Build Succeeded**, choose **Product → Show Build Folder in Finder**, open **Products → Debug**, and copy **Glassist.app** into **Applications**. Quit a running Glassist before replacing it, then open the installed copy. The app and embedded widget must both be signed by the same team. If the gallery keeps showing an older version, use `scripts/install-local.sh` to refresh the installed registration and remove the duplicate build-product registration.
+
 Glassist gets its glass/tint appearance from the system widget appearance. It cannot force a blur amount or override Reduce Transparency. Follow system settings to obtain the same look as neighboring Apple widgets.
 
 ## Local validation and renewal

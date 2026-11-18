@@ -1,0 +1,24 @@
+// System-hosted widget configuration and App Intents.
+"Todoist filter" = "Todoist filter";
+"Layout" = "Layout";
+"Roomy" = "Roomy";
+"Compact · more tasks" = "Compact · more tasks";
+"Accent color" = "Accent color";
+"Coral" = "Coral";
+"Ocean" = "Ocean";
+"Sage" = "Sage";
+"Graphite" = "Graphite";
+"Language" = "Language";
+"Follow app" = "Follow app";
+"Simplified Chinese" = "Simplified Chinese";
+"English" = "English";
+"Choose a Todoist filter" = "Choose a Todoist filter";
+"Each widget shows one saved filter, independently." = "Each widget shows one saved filter, independently.";
+"Filter" = "Filter";
+"Show counts" = "Show counts";
+"Show dates" = "Show dates";
+"Show footer (large)" = "Show footer (large)";
+"Custom title" = "Custom title";
+"Complete Todoist task" = "Complete Todoist task";
+"Task" = "Task";
+"Account version" = "Account version";

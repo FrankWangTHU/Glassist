@@ -53,7 +53,7 @@ struct TaskProvider: AppIntentTimelineProvider {
         }
     }
     private func sample(_ configuration: SelectFilterIntent = SelectFilterIntent()) -> TaskEntry {
-        let language = configuration.interfaceLanguage.resolve(nil)
+        let language = configuration.interfaceLanguage.resolve((try? WidgetStorage().read())?.interfaceLanguage)
         let filter = SavedFilter(id: "preview", name: language.text("今日专注"), query: "today")
         let formatter = DateFormatter(); formatter.dateFormat = "yyyy-MM-dd"
         let date = formatter.string(from: Date())
