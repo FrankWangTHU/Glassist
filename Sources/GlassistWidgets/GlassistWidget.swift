@@ -9,7 +9,7 @@ struct TaskEntry: TimelineEntry {
     var locked: Set<String> = []
     var feedback: CompletionFeedback?
     var preview = false
-    var language: AppLanguage = .chinese
+    var language: AppLanguage = .system
 }
 struct TaskProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> TaskEntry { sample() }

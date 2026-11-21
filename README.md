@@ -2,6 +2,8 @@
 
 Your Todoist filters, at home on your Mac. 原生 Todoist 过滤器小组件。
 
+Version 0.4.0 is a release candidate with a native app icon, system-language onboarding and distribution verification tooling. A notarized download and Mac App Store listing are still pending; see the [release workflow](docs/RELEASE.md).
+
 Glassist lives alongside Calendar and Weather in Notification Center and on the desktop. Add small, medium or large widgets, each with its own saved Todoist filter.
 
 ![Glassist 0.3 interface preview using fictional tasks](docs/preview.jpg)

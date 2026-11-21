@@ -36,7 +36,7 @@ enum WidgetLanguage: String, AppEnum {
     static var caseDisplayRepresentations: [Self: DisplayRepresentation] = [.app: DisplayRepresentation(title: LocalizedStringResource("Follow app", table: "WidgetIntents")), .chinese: DisplayRepresentation(title: LocalizedStringResource("Simplified Chinese", table: "WidgetIntents")), .english: DisplayRepresentation(title: LocalizedStringResource("English", table: "WidgetIntents"))]
     func resolve(_ appValue: String?) -> AppLanguage {
         switch self {
-        case .app: return appValue.flatMap(AppLanguage.init(rawValue:)) ?? .chinese
+        case .app: return appValue.flatMap(AppLanguage.init(rawValue:)) ?? .system
         case .chinese: return .chinese
         case .english: return .english
         }

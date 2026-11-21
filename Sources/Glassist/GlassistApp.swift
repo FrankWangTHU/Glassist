@@ -7,7 +7,7 @@ import GlassistCore
 @main struct GlassistApp: App {
     @StateObject private var store = AppStore()
     var body: some Scene {
-        Window("Glassist 设置", id: "settings") {
+        Window("Glassist", id: "settings") {
             SettingsView(store: store)
                 .onOpenURL { ApplicationRouter.handle($0, store: store) }
         }

@@ -30,11 +30,14 @@ for language in ['en','zh-Hans']:
     intentrefs.append(add('intent-strings-'+language,'PBXFileReference',lastKnownFileType='text.plist.strings',name=language,path=path,sourceTree='<group>'))
 intentstrings=add('localized-intent-strings','PBXVariantGroup',children=intentrefs,name='WidgetIntents.strings',sourceTree='<group>')
 configrefs.append(intentstrings)
+assets=add('app-assets','PBXFileReference',lastKnownFileType='folder.assetcatalog',path='Resources/Assets.xcassets',sourceTree='<group>')
+privacy=add('privacy-manifest','PBXFileReference',lastKnownFileType='text.xml',path='Configuration/PrivacyInfo.xcprivacy',sourceTree='<group>')
+configrefs.extend([assets,privacy])
 products=add('products','PBXGroup',children=[product_host,product_widget],name='Products',sourceTree='<group>')
 main=add('main','PBXGroup',children=list(files.values())+configrefs+[products],sourceTree='<group>')
 base={'MACOSX_DEPLOYMENT_TARGET':'14.0','SDKROOT':'macosx','SWIFT_VERSION':'5.0','ARCHS':'arm64','CLANG_ENABLE_MODULES':'YES',
       'CODE_SIGN_STYLE':'Automatic','ENABLE_HARDENED_RUNTIME':'YES',
-      'REGISTER_APP_GROUPS':'YES','SWIFT_EMIT_LOC_STRINGS':'YES','CURRENT_PROJECT_VERSION':'6','MARKETING_VERSION':'0.3.2'}
+      'REGISTER_APP_GROUPS':'YES','SWIFT_EMIT_LOC_STRINGS':'YES','CURRENT_PROJECT_VERSION':'7','MARKETING_VERSION':'0.4.0'}
 def configs(name, extra):
     refs=[]
     for mode in ['Debug','Release']:
@@ -53,7 +56,10 @@ for name, targetID, selected, product, bundle, info, entitlements, producttype i
     frameworks=add(name+'frameworks','PBXFrameworksBuildPhase',buildActionMask=2147483647,files=[],runOnlyForDeploymentPostprocessing=0)
     resourcefile=add(name+'localized-resource','PBXBuildFile',fileRef=strings)
     intentresource=add(name+'localized-intent-resource','PBXBuildFile',fileRef=intentstrings)
-    resources=add(name+'resources','PBXResourcesBuildPhase',buildActionMask=2147483647,files=[resourcefile,intentresource],runOnlyForDeploymentPostprocessing=0)
+    privacyresource=add(name+'privacy-resource','PBXBuildFile',fileRef=privacy)
+    resourcefiles=[resourcefile,intentresource,privacyresource]
+    if name=='host': resourcefiles.append(add('host-assets-resource','PBXBuildFile',fileRef=assets))
+    resources=add(name+'resources','PBXResourcesBuildPhase',buildActionMask=2147483647,files=resourcefiles,runOnlyForDeploymentPostprocessing=0)
     phases=[sources,frameworks,resources]; dependencies=[]
     if name=='host':
         embedfile=add('embedfile','PBXBuildFile',fileRef=product_widget,settings={'ATTRIBUTES':['CodeSignOnCopy','RemoveHeadersOnCopy']})
@@ -65,6 +71,7 @@ for name, targetID, selected, product, bundle, info, entitlements, producttype i
               'LD_RUNPATH_SEARCH_PATHS':['$(inherited)','@executable_path/../Frameworks','@executable_path/../../../../Frameworks'],
               'SKIP_INSTALL':'YES' if name=='widget' else 'NO','ENABLE_APP_SANDBOX':'YES',
               'APPLICATION_EXTENSION_API_ONLY':'YES' if name=='widget' else 'NO'}
+    if name=='host': settings['ASSETCATALOG_COMPILER_APPICON_NAME']='AppIcon'
     objects[targetID]={'isa':'PBXNativeTarget','buildConfigurationList':configs(name,settings),'buildPhases':phases,'buildRules':[],
                        'dependencies':dependencies,'name':settings['PRODUCT_NAME'],'productName':settings['PRODUCT_NAME'],
                        'productReference':product,'productType':producttype}
@@ -89,7 +96,10 @@ common={'CFBundleExecutable':'$(EXECUTABLE_NAME)','CFBundleIdentifier':'$(PRODUC
         'GlassistKeychainGroup':'$(AppIdentifierPrefix)com.frankwang.Glassist.shared'}
 for name in ['App','Widget']:
     info={**common,'CFBundlePackageType':'APPL' if name=='App' else 'XPC!'}
-    if name=='App': info['CFBundleURLTypes']=[{'CFBundleURLName':'com.frankwang.Glassist','CFBundleURLSchemes':['glassist']}]
+    if name=='App':
+        info['CFBundleURLTypes']=[{'CFBundleURLName':'com.frankwang.Glassist','CFBundleURLSchemes':['glassist']}]
+        info['LSApplicationCategoryType']='public.app-category.productivity'
+        info['NSHumanReadableCopyright']='Copyright © 2026 Frank Wang'
     else: info['NSExtension']={'NSExtensionPointIdentifier':'com.apple.widgetkit-extension'}
     (root/'Configuration'/f'{name}-Info.plist').write_bytes(plistlib.dumps(info))
     (root/'Configuration'/f'{name}.entitlements').write_bytes(plistlib.dumps({'com.apple.security.app-sandbox':True,

@@ -62,7 +62,7 @@ private struct PreviewSheet: View {
                     Text(copy("轻点查看 · 随手记录 · 完成一件小事", "Open. Capture. Get a little done.")).font(.system(size: 14)).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Text(copy("0.3 / 界面预览", "0.3 / Design preview")).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
+                    Text(copy("0.4 / 界面预览", "0.4 / Design preview")).font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
             }
             HStack(alignment: .top, spacing: 26) {
                 VStack(alignment: .leading, spacing: 13) {
